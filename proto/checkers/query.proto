@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "checkers/params.proto";
 import "checkers/stored_game.proto";
+import "checkers/system_info.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/alice/checkers/x/checkers/types";
@@ -26,6 +27,10 @@ service Query {
 		option (google.api.http).get = "/alice/checkers/checkers/stored_game";
 	}
 
+// Queries a SystemInfo by index.
+	rpc SystemInfo(QueryGetSystemInfoRequest) returns (QueryGetSystemInfoResponse) {
+		option (google.api.http).get = "/alice/checkers/checkers/system_info";
+	}
 // this line is used by starport scaffolding # 2
 }
 
@@ -56,4 +61,9 @@ message QueryAllStoredGameResponse {
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
+message QueryGetSystemInfoRequest {}
+
+message QueryGetSystemInfoResponse {
+	SystemInfo SystemInfo = 1 [(gogoproto.nullable) = false];
+}
 // this line is used by starport scaffolding # 3

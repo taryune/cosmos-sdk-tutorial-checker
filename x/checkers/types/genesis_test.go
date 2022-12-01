@@ -30,6 +30,9 @@ func TestGenesisState_Validate(t *testing.T) {
 						Index: "1",
 					},
 				},
+				SystemInfo: &types.SystemInfo{
+					NextId: 38,
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

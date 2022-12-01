@@ -33,6 +33,10 @@ export interface CheckersQueryGetStoredGameResponse {
   storedGame?: CheckersStoredGame;
 }
 
+export interface CheckersQueryGetSystemInfoResponse {
+  SystemInfo?: CheckersSystemInfo;
+}
+
 /**
  * QueryParamsResponse is response type for the Query/Params RPC method.
  */
@@ -47,6 +51,11 @@ export interface CheckersStoredGame {
   turn?: string;
   black?: string;
   red?: string;
+}
+
+export interface CheckersSystemInfo {
+  /** @format uint64 */
+  nextId?: string;
 }
 
 export interface ProtobufAny {
@@ -372,6 +381,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryStoredGame = (index: string, params: RequestParams = {}) =>
     this.request<CheckersQueryGetStoredGameResponse, RpcStatus>({
       path: `/alice/checkers/checkers/stored_game/${index}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySystemInfo
+   * @summary Queries a SystemInfo by index.
+   * @request GET:/alice/checkers/checkers/system_info
+   */
+  querySystemInfo = (params: RequestParams = {}) =>
+    this.request<CheckersQueryGetSystemInfoResponse, RpcStatus>({
+      path: `/alice/checkers/checkers/system_info`,
       method: "GET",
       format: "json",
       ...params,
