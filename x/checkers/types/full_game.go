@@ -21,7 +21,7 @@ func (storedGame StoredGame) GetRedAddress() (red sdk.AccAddress, err error) {
 
 func (storedGame StoredGame) ParseGame() (game *rules.Game, err error) {
 	board, errBoard := rules.Parse(storedGame.Board)
-	if err != nil {
+	if errBoard != nil {
 		return nil, sdkerrors.Wrapf(errBoard, ErrGameNotParseable.Error())
 	}
 	board.Turn = rules.StringPieces[storedGame.Turn].Player
