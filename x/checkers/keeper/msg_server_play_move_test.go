@@ -120,3 +120,36 @@ func TestPlayMoveCannotParseGame(t *testing.T) {
 		ToY:       3,
 	})
 }
+
+func TestPlayMove2Emitted(t *testing.T) {
+	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     1,
+		FromY:     2,
+		ToX:       2,
+		ToY:       3,
+	})
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   carol,
+		GameIndex: "1",
+		FromX:     0,
+		FromY:     5,
+		ToX:       1,
+		ToY:       4,
+	})
+	ctx := sdk.UnwrapSDKContext(context)
+	require.NotNil(t, ctx)
+	events := sdk.StringifyEvents(ctx.EventManager().ABCIEvents())
+	require.Len(t, events, 2)
+	require.Equal(t, "move-played", events[0].Type)
+	require.EqualValues(t, []sdk.Attribute{
+		{Key: "creator", Value: carol},
+		{Key: "game-index", Value: "1"},
+		{Key: "captured-x", Value: "-1"},
+		{Key: "captured-y", Value: "-1"},
+		{Key: "winner", Value: "*"},
+	}, events[0].Attributes[5:])
+
+}
