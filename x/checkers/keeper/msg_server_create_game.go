@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"github.com/alice/checkers/x/checkers/rules"
@@ -13,27 +12,24 @@ import (
 func (k msgServer) CreateGame(goCtx context.Context, msg *types.MsgCreateGame) (*types.MsgCreateGameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	red, err := sdk.AccAddressFromBech32(msg.Red)
-	if err != nil {
-		return nil, errors.New("invalid address for red")
-	}
-	black, err := sdk.AccAddressFromBech32(msg.Black)
-	if err != nil {
-		return nil, errors.New("invalid address for Black")
-	}
-
 	systemInfo, found := k.Keeper.GetSystemInfo(ctx)
 	if !found {
 		panic("systemInfo not found")
 	}
+
 	newIndex := strconv.FormatUint(systemInfo.NextId, 10)
 	newGame := rules.New()
 	storedGame := types.StoredGame{
 		Index: newIndex,
 		Board: newGame.String(),
 		Turn:  rules.PieceStrings[newGame.Turn],
-		Black: black.String(),
-		Red:   red.String(),
+		Black: msg.Black,
+		Red:   msg.Red,
+	}
+
+	errGame := storedGame.Validate()
+	if errGame != nil {
+		return nil, errGame
 	}
 
 	k.Keeper.SetStoredGame(ctx, storedGame)
