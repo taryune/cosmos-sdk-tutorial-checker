@@ -22,7 +22,7 @@ func TestGenesis(t *testing.T) {
 				Index: "1",
 			},
 		},
-		SystemInfo: &types.SystemInfo{
+		SystemInfo: types.SystemInfo{
 			NextId: 86,
 		},
 		// this line is used by starport scaffolding # genesis/test/state

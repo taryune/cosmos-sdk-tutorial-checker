@@ -7,6 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDefaultGenesisState_ExpectedInitalNextId(t *testing.T) {
+	require.EqualValues(t,
+		&types.GenesisState{
+			StoredGameList: []types.StoredGame{},
+			SystemInfo:     types.SystemInfo{uint64(1)},
+		},
+		types.DefaultGenesis(),
+	)
+}
+
 func TestGenesisState_Validate(t *testing.T) {
 	for _, tc := range []struct {
 		desc     string
@@ -30,7 +40,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						Index: "1",
 					},
 				},
-				SystemInfo: &types.SystemInfo{
+				SystemInfo: types.SystemInfo{
 					NextId: 38,
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
