@@ -5,7 +5,7 @@ import (
 )
 
 const (
-  alice = testutil.Alice
-  bob = testutil.Bob
-  carol = testutil.Carol
+	alice = testutil.Alice
+	bob   = testutil.Bob
+	carol = testutil.Carol
 )
