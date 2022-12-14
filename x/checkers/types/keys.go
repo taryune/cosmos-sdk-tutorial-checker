@@ -34,10 +34,10 @@ const (
 )
 
 const (
-    MovePlayedEventType      = "move-played"
-    MovePlayedEventCreator   = "creator"
-    MovePlayedEventGameIndex = "game-index"
-    MovePlayedEventCapturedX = "captured-x"
-    MovePlayedEventCapturedY = "captured-y"
-    MovePlayedEventWinner    = "winner"
+	MovePlayedEventType      = "move-played"
+	MovePlayedEventCreator   = "creator"
+	MovePlayedEventGameIndex = "game-index"
+	MovePlayedEventCapturedX = "captured-x"
+	MovePlayedEventCapturedY = "captured-y"
+	MovePlayedEventWinner    = "winner"
 )
