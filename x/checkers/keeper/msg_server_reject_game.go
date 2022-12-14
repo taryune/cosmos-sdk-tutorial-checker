@@ -19,13 +19,13 @@ func (k msgServer) RejectGame(goCtx context.Context, msg *types.MsgRejectGame) (
 	if storedGame.Black == msg.Creator {
 		if 0 < storedGame.MoveCount {
 			return nil, types.ErrBlackAlreadyPlayed
-		} else if storedGame.Red == msg.Creator {
-			if 1 < storedGame.MoveCount {
-				return nil, types.ErrRedAlreadyPlayed
-			}
-		} else {
-			return nil, sdkerrors.Wrapf(types.ErrCreatorNotPlayer, "%s", msg.Creator)
 		}
+	} else if storedGame.Red == msg.Creator {
+		if 1 < storedGame.MoveCount {
+			return nil, types.ErrRedAlreadyPlayed
+		}
+	} else {
+		return nil, sdkerrors.Wrapf(types.ErrCreatorNotPlayer, "%s", msg.Creator)
 	}
 
 	k.Keeper.RemoveStoredGame(ctx, msg.GameIndex)
