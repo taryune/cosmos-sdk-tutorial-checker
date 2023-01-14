@@ -33,6 +33,7 @@ func TestCreateGame(t *testing.T) {
 
 func TestCreate1GameHasSaved(t *testing.T) {
 	msgServer, keeper, context := setupMsgServerCreateGame(t)
+	ctx := sdk.UnwrapSDKContext(context)
 	msgServer.CreateGame(context, &types.MsgCreateGame{
 		Creator: alice,
 		Black:   bob,
@@ -55,6 +56,7 @@ func TestCreate1GameHasSaved(t *testing.T) {
 		Red:         carol,
 		BeforeIndex: "-1",
 		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 	}, game1)
 }
 

@@ -11,7 +11,7 @@ func TestDefaultGenesisState_ExpectedInitalNextId(t *testing.T) {
 	require.EqualValues(t,
 		&types.GenesisState{
 			StoredGameList: []types.StoredGame{},
-			SystemInfo:     types.SystemInfo{uint64(1)},
+			SystemInfo:     types.SystemInfo{uint64(1), types.NoFifoIndex, types.NoFifoIndex},
 		},
 		types.DefaultGenesis(),
 	)

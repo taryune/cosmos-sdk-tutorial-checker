@@ -8,28 +8,64 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreate3GamesHasSavedFifo(t *testing.T) {
-	msgSrvr, keeper, context := setupMsgServerCreateGame(t)
+func TestRejectSecondGameHasSavedFifo(t *testing.T) {
+	msgServer, keeper, context := setupMsgServerWithOneGameForRejectGame(t)
 	ctx := sdk.UnwrapSDKContext(context)
-	msgSrvr.CreateGame(context, &types.MsgCreateGame{
-		Creator: alice,
-		Black:   bob,
-		Red:     carol,
-	})
-
-	// Second game
-	msgSrvr.CreateGame(context, &types.MsgCreateGame{
+	msgServer.CreateGame(context, &types.MsgCreateGame{
 		Creator: bob,
 		Black:   carol,
 		Red:     alice,
 	})
-	systemInfo2, found := keeper.GetSystemInfo(ctx)
+	msgServer.RejectGame(context, &types.MsgRejectGame{
+		Creator:   carol,
+		GameIndex: "1",
+	})
+	systemInfo, found := keeper.GetSystemInfo(ctx)
 	require.True(t, found)
 	require.EqualValues(t, types.SystemInfo{
 		NextId:        3,
-		FifoHeadIndex: "1",
+		FifoHeadIndex: "2",
 		FifoTailIndex: "2",
-	}, systemInfo2)
+	}, systemInfo)
+	game2, found := keeper.GetStoredGame(ctx, "2")
+	require.True(t, found)
+	require.EqualValues(t, types.StoredGame{
+		Index:       "2",
+		Board:       "*b*b*b*b|b*b*b*b*|*b*b*b*b|********|********|r*r*r*r*|*r*r*r*r|r*r*r*r*",
+		Turn:        "b",
+		Black:       carol,
+		Red:         alice,
+		MoveCount:   uint64(0),
+		BeforeIndex: "-1",
+		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+	}, game2)
+}
+
+func TestRejectMiddleGameHasSavedFifo(t *testing.T) {
+	msgServer, keeper, context := setupMsgServerWithOneGameForRejectGame(t)
+	ctx := sdk.UnwrapSDKContext(context)
+	msgServer.CreateGame(context, &types.MsgCreateGame{
+		Creator: bob,
+		Black:   carol,
+		Red:     alice,
+	})
+	msgServer.CreateGame(context, &types.MsgCreateGame{
+		Creator: carol,
+		Black:   alice,
+		Red:     bob,
+	})
+	msgServer.RejectGame(context, &types.MsgRejectGame{
+		Creator:   carol,
+		GameIndex: "2",
+	})
+	systemInfo, found := keeper.GetSystemInfo(ctx)
+	require.True(t, found)
+	require.EqualValues(t, types.SystemInfo{
+		NextId:        4,
+		FifoHeadIndex: "1",
+		FifoTailIndex: "3",
+	}, systemInfo)
 	game1, found := keeper.GetStoredGame(ctx, "1")
 	require.True(t, found)
 	require.EqualValues(t, types.StoredGame{
@@ -40,62 +76,9 @@ func TestCreate3GamesHasSavedFifo(t *testing.T) {
 		Red:         carol,
 		MoveCount:   uint64(0),
 		BeforeIndex: "-1",
-		AfterIndex:  "2",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
-	}, game1)
-	game2, found := keeper.GetStoredGame(ctx, "2")
-	require.True(t, found)
-	require.EqualValues(t, types.StoredGame{
-		Index:       "2",
-		Board:       "*b*b*b*b|b*b*b*b*|*b*b*b*b|********|********|r*r*r*r*|*r*r*r*r|r*r*r*r*",
-		Turn:        "b",
-		Black:       carol,
-		Red:         alice,
-		MoveCount:   uint64(0),
-		BeforeIndex: "1",
-		AfterIndex:  "-1",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
-	}, game2)
-
-	// Third game
-	msgSrvr.CreateGame(context, &types.MsgCreateGame{
-		Creator: carol,
-		Black:   alice,
-		Red:     bob,
-	})
-	systemInfo3, found := keeper.GetSystemInfo(ctx)
-	require.True(t, found)
-	require.EqualValues(t, types.SystemInfo{
-		NextId:        4,
-		FifoHeadIndex: "1",
-		FifoTailIndex: "3",
-	}, systemInfo3)
-	game1, found = keeper.GetStoredGame(ctx, "1")
-	require.True(t, found)
-	require.EqualValues(t, types.StoredGame{
-		Index:       "1",
-		Board:       "*b*b*b*b|b*b*b*b*|*b*b*b*b|********|********|r*r*r*r*|*r*r*r*r|r*r*r*r*",
-		Turn:        "b",
-		Black:       bob,
-		Red:         carol,
-		MoveCount:   uint64(0),
-		BeforeIndex: "-1",
-		AfterIndex:  "2",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
-	}, game1)
-	game2, found = keeper.GetStoredGame(ctx, "2")
-	require.True(t, found)
-	require.EqualValues(t, types.StoredGame{
-		Index:       "2",
-		Board:       "*b*b*b*b|b*b*b*b*|*b*b*b*b|********|********|r*r*r*r*|*r*r*r*r|r*r*r*r*",
-		Turn:        "b",
-		Black:       carol,
-		Red:         alice,
-		MoveCount:   uint64(0),
-		BeforeIndex: "1",
 		AfterIndex:  "3",
 		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
-	}, game2)
+	}, game1)
 	game3, found := keeper.GetStoredGame(ctx, "3")
 	require.True(t, found)
 	require.EqualValues(t, types.StoredGame{
@@ -105,7 +88,7 @@ func TestCreate3GamesHasSavedFifo(t *testing.T) {
 		Black:       alice,
 		Red:         bob,
 		MoveCount:   uint64(0),
-		BeforeIndex: "2",
+		BeforeIndex: "1",
 		AfterIndex:  "-1",
 		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 	}, game3)

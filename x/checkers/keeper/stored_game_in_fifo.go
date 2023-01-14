@@ -21,22 +21,21 @@ func (k Keeper) RemoveFromFifo(ctx sdk.Context, game *types.StoredGame, info *ty
 	} else if info.FifoHeadIndex == game.Index {
 		info.FifoHeadIndex = game.AfterIndex
 	}
-	// Does it have a predecessor?
+	// Does it have a successor?
 	if game.AfterIndex != types.NoFifoIndex {
 		afterElement, found := k.GetStoredGame(ctx, game.AfterIndex)
 		if !found {
-			panic("Elemnt after in Fifo was not found")
+			panic("Element after in Fifo was not found")
 		}
 		afterElement.BeforeIndex = game.BeforeIndex
 		k.SetStoredGame(ctx, afterElement)
 		if game.BeforeIndex == types.NoFifoIndex {
-			info.FifoHeadIndex = afterElement.AfterIndex
+			info.FifoHeadIndex = afterElement.Index
 		}
 		// Is it at the FIFO tail?
 	} else if info.FifoTailIndex == game.Index {
 		info.FifoTailIndex = game.BeforeIndex
 	}
-
 	game.BeforeIndex = types.NoFifoIndex
 	game.AfterIndex = types.NoFifoIndex
 }
