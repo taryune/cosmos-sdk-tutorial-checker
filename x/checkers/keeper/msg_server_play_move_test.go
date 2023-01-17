@@ -150,6 +150,7 @@ func TestPlayMove2Emitted(t *testing.T) {
 		{Key: "captured-x", Value: "-1"},
 		{Key: "captured-y", Value: "-1"},
 		{Key: "winner", Value: "*"},
-	}, events[0].Attributes[5:])
+		{Key: "board", Value: "*b*b*b*b|b*b*b*b*|***b*b*b|**b*****|*r******|**r*r*r*|*r*r*r*r|r*r*r*r*"},
+	}, events[0].Attributes[6:])
 
 }
