@@ -25,6 +25,7 @@ func TestCreateGame(t *testing.T) {
 		Black:   bob,
 		Red:     carol,
 		Wager:   45,
+		Denom:   "stake",
 	})
 	require.Nil(t, err)
 	require.EqualValues(t, types.MsgCreateGameResponse{
@@ -84,6 +85,21 @@ func TestCreate1GameEmitted(t *testing.T) {
 			{Key: "black", Value: bob},
 			{Key: "red", Value: carol},
 			{Key: "wager", Value: "45"},
+			{Key: "denom", Value: ""},
 		},
 	}, events[0])
+}
+
+func TestCreate1GameConsumedGas(t *testing.T) {
+	msgSrvr, _, context := setupMsgServerCreateGame(t)
+	ctx := sdk.UnwrapSDKContext(context)
+	before := ctx.GasMeter().GasConsumed()
+	msgSrvr.CreateGame(context, &types.MsgCreateGame{
+		Creator: alice,
+		Black:   bob,
+		Red:     carol,
+		Wager:   45,
+	})
+	after := ctx.GasMeter().GasConsumed()
+	require.GreaterOrEqual(t, after, before+25_000)
 }
