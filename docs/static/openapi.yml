@@ -4,6 +4,69 @@ info:
   name: ''
   description: ''
 paths:
+  '/alice/checkers/checkers/can_play_move/{gameIndex}/{player}/{fromX}/{fromY}/{toX}/{toY}':
+    get:
+      summary: Queries a list of CanPlayMove items.
+      operationId: AliceCheckersCheckersCanPlayMove
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              possible:
+                type: boolean
+              reason:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: gameIndex
+          in: path
+          required: true
+          type: string
+        - name: player
+          in: path
+          required: true
+          type: string
+        - name: fromX
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: fromY
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: toX
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: toY
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
   /alice/checkers/checkers/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -66,6 +129,17 @@ paths:
                     red:
                       type: string
                     moveCount:
+                      type: string
+                      format: uint64
+                    beforeIndex:
+                      type: string
+                    afterIndex:
+                      type: string
+                    deadline:
+                      type: string
+                    winner:
+                      type: string
+                    wager:
                       type: string
                       format: uint64
               pagination:
@@ -198,6 +272,17 @@ paths:
                   moveCount:
                     type: string
                     format: uint64
+                  beforeIndex:
+                    type: string
+                  afterIndex:
+                    type: string
+                  deadline:
+                    type: string
+                  winner:
+                    type: string
+                  wager:
+                    type: string
+                    format: uint64
         default:
           description: An unexpected error response.
           schema:
@@ -239,6 +324,10 @@ paths:
                   nextId:
                     type: string
                     format: uint64
+                  fifoHeadIndex:
+                    type: string
+                  fifoTailIndex:
+                    type: string
         default:
           description: An unexpected error response.
           schema:
@@ -30808,6 +30897,17 @@ definitions:
             moveCount:
               type: string
               format: uint64
+            beforeIndex:
+              type: string
+            afterIndex:
+              type: string
+            deadline:
+              type: string
+            winner:
+              type: string
+            wager:
+              type: string
+              format: uint64
       pagination:
         type: object
         properties:
@@ -30833,6 +30933,13 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  alice.checkers.checkers.QueryCanPlayMoveResponse:
+    type: object
+    properties:
+      possible:
+        type: boolean
+      reason:
+        type: string
   alice.checkers.checkers.QueryGetStoredGameResponse:
     type: object
     properties:
@@ -30852,6 +30959,17 @@ definitions:
           moveCount:
             type: string
             format: uint64
+          beforeIndex:
+            type: string
+          afterIndex:
+            type: string
+          deadline:
+            type: string
+          winner:
+            type: string
+          wager:
+            type: string
+            format: uint64
   alice.checkers.checkers.QueryGetSystemInfoResponse:
     type: object
     properties:
@@ -30861,6 +30979,10 @@ definitions:
           nextId:
             type: string
             format: uint64
+          fifoHeadIndex:
+            type: string
+          fifoTailIndex:
+            type: string
   alice.checkers.checkers.QueryParamsResponse:
     type: object
     properties:
@@ -30884,12 +31006,27 @@ definitions:
       moveCount:
         type: string
         format: uint64
+      beforeIndex:
+        type: string
+      afterIndex:
+        type: string
+      deadline:
+        type: string
+      winner:
+        type: string
+      wager:
+        type: string
+        format: uint64
   alice.checkers.checkers.SystemInfo:
     type: object
     properties:
       nextId:
         type: string
         format: uint64
+      fifoHeadIndex:
+        type: string
+      fifoTailIndex:
+        type: string
   cosmos.base.query.v1beta1.PageRequest:
     type: object
     properties:

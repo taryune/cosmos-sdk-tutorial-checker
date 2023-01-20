@@ -11,6 +11,11 @@ export interface StoredGame {
   black: string;
   red: string;
   moveCount: number;
+  beforeIndex: string;
+  afterIndex: string;
+  deadline: string;
+  winner: string;
+  wager: number;
 }
 
 const baseStoredGame: object = {
@@ -20,6 +25,11 @@ const baseStoredGame: object = {
   black: "",
   red: "",
   moveCount: 0,
+  beforeIndex: "",
+  afterIndex: "",
+  deadline: "",
+  winner: "",
+  wager: 0,
 };
 
 export const StoredGame = {
@@ -41,6 +51,21 @@ export const StoredGame = {
     }
     if (message.moveCount !== 0) {
       writer.uint32(48).uint64(message.moveCount);
+    }
+    if (message.beforeIndex !== "") {
+      writer.uint32(58).string(message.beforeIndex);
+    }
+    if (message.afterIndex !== "") {
+      writer.uint32(66).string(message.afterIndex);
+    }
+    if (message.deadline !== "") {
+      writer.uint32(74).string(message.deadline);
+    }
+    if (message.winner !== "") {
+      writer.uint32(82).string(message.winner);
+    }
+    if (message.wager !== 0) {
+      writer.uint32(88).uint64(message.wager);
     }
     return writer;
   },
@@ -69,6 +94,21 @@ export const StoredGame = {
           break;
         case 6:
           message.moveCount = longToNumber(reader.uint64() as Long);
+          break;
+        case 7:
+          message.beforeIndex = reader.string();
+          break;
+        case 8:
+          message.afterIndex = reader.string();
+          break;
+        case 9:
+          message.deadline = reader.string();
+          break;
+        case 10:
+          message.winner = reader.string();
+          break;
+        case 11:
+          message.wager = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -110,6 +150,31 @@ export const StoredGame = {
     } else {
       message.moveCount = 0;
     }
+    if (object.beforeIndex !== undefined && object.beforeIndex !== null) {
+      message.beforeIndex = String(object.beforeIndex);
+    } else {
+      message.beforeIndex = "";
+    }
+    if (object.afterIndex !== undefined && object.afterIndex !== null) {
+      message.afterIndex = String(object.afterIndex);
+    } else {
+      message.afterIndex = "";
+    }
+    if (object.deadline !== undefined && object.deadline !== null) {
+      message.deadline = String(object.deadline);
+    } else {
+      message.deadline = "";
+    }
+    if (object.winner !== undefined && object.winner !== null) {
+      message.winner = String(object.winner);
+    } else {
+      message.winner = "";
+    }
+    if (object.wager !== undefined && object.wager !== null) {
+      message.wager = Number(object.wager);
+    } else {
+      message.wager = 0;
+    }
     return message;
   },
 
@@ -121,6 +186,12 @@ export const StoredGame = {
     message.black !== undefined && (obj.black = message.black);
     message.red !== undefined && (obj.red = message.red);
     message.moveCount !== undefined && (obj.moveCount = message.moveCount);
+    message.beforeIndex !== undefined &&
+      (obj.beforeIndex = message.beforeIndex);
+    message.afterIndex !== undefined && (obj.afterIndex = message.afterIndex);
+    message.deadline !== undefined && (obj.deadline = message.deadline);
+    message.winner !== undefined && (obj.winner = message.winner);
+    message.wager !== undefined && (obj.wager = message.wager);
     return obj;
   },
 
@@ -155,6 +226,31 @@ export const StoredGame = {
       message.moveCount = object.moveCount;
     } else {
       message.moveCount = 0;
+    }
+    if (object.beforeIndex !== undefined && object.beforeIndex !== null) {
+      message.beforeIndex = object.beforeIndex;
+    } else {
+      message.beforeIndex = "";
+    }
+    if (object.afterIndex !== undefined && object.afterIndex !== null) {
+      message.afterIndex = object.afterIndex;
+    } else {
+      message.afterIndex = "";
+    }
+    if (object.deadline !== undefined && object.deadline !== null) {
+      message.deadline = object.deadline;
+    } else {
+      message.deadline = "";
+    }
+    if (object.winner !== undefined && object.winner !== null) {
+      message.winner = object.winner;
+    } else {
+      message.winner = "";
+    }
+    if (object.wager !== undefined && object.wager !== null) {
+      message.wager = object.wager;
+    } else {
+      message.wager = 0;
     }
     return message;
   },
