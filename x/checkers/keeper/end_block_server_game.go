@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/alice/checkers/x/checkers/rules"
+	rules "github.com/alice/checkers/x/checkers/rules"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -16,6 +16,8 @@ func (k Keeper) ForfeitExpiredGames(goCtx context.Context) {
 		rules.PieceStrings[rules.BLACK_PLAYER]: rules.PieceStrings[rules.RED_PLAYER],
 		rules.PieceStrings[rules.RED_PLAYER]:   rules.PieceStrings[rules.BLACK_PLAYER],
 	}
+
+	// Get FIFO information
 	systemInfo, found := k.GetSystemInfo(ctx)
 	if !found {
 		panic("SystemInfo not found")
@@ -43,11 +45,15 @@ func (k Keeper) ForfeitExpiredGames(goCtx context.Context) {
 			if storedGame.MoveCount <= 1 {
 				// No point in keeping a game that was never really played
 				k.RemoveStoredGame(ctx, gameIndex)
+				if storedGame.MoveCount == 1 {
+					k.MustRefundWager(ctx, &storedGame)
+				}
 			} else {
 				storedGame.Winner, found = opponents[storedGame.Turn]
 				if !found {
 					panic(fmt.Sprintf(types.ErrCannotFindWinnerByColor.Error(), storedGame.Turn))
 				}
+				k.MustPayWinnings(ctx, &storedGame)
 				storedGame.Board = ""
 				k.SetStoredGame(ctx, storedGame)
 			}

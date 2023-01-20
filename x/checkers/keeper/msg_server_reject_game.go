@@ -30,6 +30,7 @@ func (k msgServer) RejectGame(goCtx context.Context, msg *types.MsgRejectGame) (
 	} else {
 		return nil, sdkerrors.Wrapf(types.ErrCreatorNotPlayer, "%s", msg.Creator)
 	}
+	k.Keeper.MustRefundWager(ctx, &storedGame)
 
 	systemInfo, found := k.Keeper.GetSystemInfo(ctx)
 	if !found {

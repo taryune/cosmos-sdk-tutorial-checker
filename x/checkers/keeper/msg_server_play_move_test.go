@@ -7,13 +7,18 @@ import (
 	keepertest "github.com/alice/checkers/testutil/keeper"
 	"github.com/alice/checkers/x/checkers"
 	"github.com/alice/checkers/x/checkers/keeper"
+	"github.com/alice/checkers/x/checkers/testutil"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-func setupMsgServerWithOneGameForPlayMove(t testing.TB) (types.MsgServer, keeper.Keeper, context.Context) {
-	k, ctx := keepertest.CheckersKeeper(t)
+func setupMsgServerWithOneGameForPlayMove(t testing.TB) (types.MsgServer, keeper.Keeper, context.Context,
+	*gomock.Controller, *testutil.MockBankEscrowKeeper) {
+	ctrl := gomock.NewController(t)
+	bankMock := testutil.NewMockBankEscrowKeeper(ctrl)
+	k, ctx := keepertest.CheckersKeeperWithMocks(t, bankMock)
 	checkers.InitGenesis(ctx, *k, *types.DefaultGenesis())
 	server := keeper.NewMsgServerImpl(*k)
 	context := sdk.WrapSDKContext(ctx)
@@ -21,12 +26,15 @@ func setupMsgServerWithOneGameForPlayMove(t testing.TB) (types.MsgServer, keeper
 		Creator: alice,
 		Black:   bob,
 		Red:     carol,
+		Wager:   45,
 	})
-	return server, *k, context
+	return server, *k, context, ctrl, bankMock
 }
 
 func TestPlayMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -44,7 +52,9 @@ func TestPlayMove(t *testing.T) {
 }
 
 func TestPlayMoveGameNotFound(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "2",
@@ -58,7 +68,9 @@ func TestPlayMoveGameNotFound(t *testing.T) {
 }
 
 func TestPlayMoveCreatorNotPlayer(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   alice,
 		GameIndex: "1",
@@ -72,7 +84,10 @@ func TestPlayMoveCreatorNotPlayer(t *testing.T) {
 }
 
 func TestPlayMoveNotPlayerTurn(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   carol,
 		GameIndex: "1",
@@ -86,7 +101,10 @@ func TestPlayMoveNotPlayerTurn(t *testing.T) {
 }
 
 func TestPlayMoveWrongMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -101,7 +119,10 @@ func TestPlayMoveWrongMove(t *testing.T) {
 }
 
 func TestPlayMoveCannotParseGame(t *testing.T) {
-	msgServer, k, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, k, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+
 	ctx := sdk.UnwrapSDKContext(context)
 	storedGame, _ := k.GetStoredGame(ctx, "1")
 	storedGame.Board = "not a board"
@@ -122,7 +143,10 @@ func TestPlayMoveCannotParseGame(t *testing.T) {
 }
 
 func TestPlayMove2Emitted(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+
 	msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",

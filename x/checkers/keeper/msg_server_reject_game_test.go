@@ -7,13 +7,18 @@ import (
 	keepertest "github.com/alice/checkers/testutil/keeper"
 	"github.com/alice/checkers/x/checkers"
 	"github.com/alice/checkers/x/checkers/keeper"
+	"github.com/alice/checkers/x/checkers/testutil"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-func setupMsgServerWithOneGameForRejectGame(t testing.TB) (types.MsgServer, keeper.Keeper, context.Context) {
-	k, ctx := keepertest.CheckersKeeper(t)
+func setupMsgServerWithOneGameForRejectGame(t testing.TB) (types.MsgServer, keeper.Keeper, context.Context,
+	*gomock.Controller, *testutil.MockBankEscrowKeeper) {
+	ctrl := gomock.NewController(t)
+	bankMock := testutil.NewMockBankEscrowKeeper(ctrl)
+	k, ctx := keepertest.CheckersKeeperWithMocks(t, bankMock)
 	checkers.InitGenesis(ctx, *k, *types.DefaultGenesis())
 	server := keeper.NewMsgServerImpl(*k)
 	context := sdk.WrapSDKContext(ctx)
@@ -21,12 +26,15 @@ func setupMsgServerWithOneGameForRejectGame(t testing.TB) (types.MsgServer, keep
 		Creator: alice,
 		Black:   bob,
 		Red:     carol,
+		Wager:   45,
 	})
-	return server, *k, context
+	return server, *k, context, ctrl, bankMock
 }
 
 func TestRejectGameByRedOneMoveRemovedGame(t *testing.T) {
-	msgServer, keeper, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -51,7 +59,8 @@ func TestRejectGameByRedOneMoveRemovedGame(t *testing.T) {
 }
 
 func TestRejectGameWrongByCreator(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
 	rejectGameResponse, err := msgServer.RejectGame(context, &types.MsgRejectGame{
 		Creator:   alice,
 		GameIndex: "1",
@@ -61,7 +70,8 @@ func TestRejectGameWrongByCreator(t *testing.T) {
 
 }
 func TestRejectGameByBlackNoMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
 	rejectGameResponse, err := msgServer.RejectGame(context, &types.MsgRejectGame{
 		Creator:   bob,
 		GameIndex: "1",
@@ -71,7 +81,8 @@ func TestRejectGameByBlackNoMove(t *testing.T) {
 }
 
 func TestRejectGameByRedNoMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
 	rejectGameResponse, err := msgServer.RejectGame(context, &types.MsgRejectGame{
 		Creator:   carol,
 		GameIndex: "1",
@@ -81,7 +92,9 @@ func TestRejectGameByRedNoMove(t *testing.T) {
 }
 
 func TestRejectGameWrongByRedOneMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	_, errMove := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -100,7 +113,9 @@ func TestRejectGameWrongByRedOneMove(t *testing.T) {
 }
 
 func TestRejectGameWrongByBlackOneMove(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
 	_, errMove := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -129,7 +144,10 @@ func TestRejectGameWrongByBlackOneMove(t *testing.T) {
 }
 
 func TestRejectGameEmitted(t *testing.T) {
-	msgServer, _, context := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForRejectGame(t)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+
 	_, err := msgServer.RejectGame(context, &types.MsgRejectGame{
 		Creator:   bob,
 		GameIndex: "1",
